@@ -5,6 +5,8 @@ import pickle
 import yfinance as yf
 import ta  # Technical indicators library
 import os
+import joblib
+model = joblib.load(f)
 
 # Check if model file exists before loading
 MODEL_PATH = "stock_prediction_model.pkl"
