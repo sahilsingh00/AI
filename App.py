@@ -1,39 +1,49 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import pickle
+import yfinance as yf
+import ta  # Technical indicators library
+import os
 
-# Load trained model
-with open("stock_model.pkl", "rb") as f:
-    model = pickle.load(f)
+# Check if model file exists before loading
+MODEL_PATH = "stock_model.pkl"
+
+if not os.path.exists(MODEL_PATH):
+    st.error("Model file not found! Please upload 'stock_model.pkl' before running the app.")
+else:
+    with open(MODEL_PATH, "rb") as f:
+        model = pickle.load(f)
 
 # Function to fetch real-time stock data
 def fetch_real_time_stock_data(ticker):
     stock = yf.Ticker(ticker)
-    history = stock.history(period="60d", interval="1d")  # Last 60 days for indicators
+    history = stock.history(period="60d", interval="1d")  # Last 60 days of data
 
     if history.empty:
         return None
 
     # Calculate indicators
-    history['SMA_10'] = ta.sma(history['Close'], length=10)
-    history['SMA_50'] = ta.sma(history['Close'], length=50)
-    history['EMA_50'] = ta.ema(history['Close'], length=50)
-    history['RSI'] = ta.rsi(history['Close'], length=14)
+    history['SMA_10'] = ta.trend.sma_indicator(history['Close'], window=10)
+    history['SMA_50'] = ta.trend.sma_indicator(history['Close'], window=50)
+    history['EMA_50'] = ta.trend.ema_indicator(history['Close'], window=50)
+    history['RSI'] = ta.momentum.rsi(history['Close'], window=14)
     
-    macd = ta.macd(history['Close'])
-    history['MACD'] = macd.iloc[:, 0]  # MACD Line
-    history['MACD_signal'] = macd.iloc[:, 1]  # Signal Line
+    macd = ta.trend.MACD(history['Close'])
+    history['MACD'] = macd.macd()
+    history['MACD_signal'] = macd.macd_signal()
     
-    bb = ta.bbands(history['Close'], length=20)
-    history['Upper_Band'] = bb.iloc[:, 0]
-    history['Middle_Band'] = bb.iloc[:, 1]
-    history['Lower_Band'] = bb.iloc[:, 2]
+    bb = ta.volatility.BollingerBands(history['Close'], window=20)
+    history['Upper_Band'] = bb.bollinger_hband()
+    history['Middle_Band'] = bb.bollinger_mavg()
+    history['Lower_Band'] = bb.bollinger_lband()
 
     latest_data = history.iloc[-1]  # Get last row
 
     # Select required features
-    feature_data = latest_data[['Close', 'SMA_10', 'SMA_50', 'EMA_50', 'RSI', 'MACD', 'MACD_signal', 'Upper_Band', 'Middle_Band', 'Lower_Band']]
-    
+    feature_columns = ['Close', 'SMA_10', 'SMA_50', 'EMA_50', 'RSI', 'MACD', 'MACD_signal', 'Upper_Band', 'Middle_Band', 'Lower_Band']
+    feature_data = latest_data[feature_columns]
+
     return np.array(feature_data).reshape(1, -1)
 
 # Streamlit UI
@@ -43,14 +53,21 @@ st.title("📈 Real-Time Stock Prediction")
 ticker = st.text_input("Enter Stock Ticker (e.g., TATAPOWER.NS):", "TATAPOWER.NS")
 
 if st.button("Predict"):
-    latest_data = fetch_real_time_stock_data(ticker)
-    
-    if latest_data is None:
-        st.error("Error fetching stock data. Try another ticker.")
+    if not os.path.exists(MODEL_PATH):
+        st.error("Model not found! Upload 'stock_model.pkl'.")
     else:
-        prediction = model.predict(latest_data)[0]
-        st.write(f"**Recommendation:** {'✅ Buy' if prediction == 1 else '❌ Sell'}")
+        latest_data = fetch_real_time_stock_data(ticker)
 
-        # Display fetched technical indicators
-        st.write("### Technical Indicators")
-        st.write(pd.DataFrame(latest_data, columns=['Close', 'SMA_10', 'SMA_50', 'EMA_50', 'RSI', 'MACD', 'MACD_signal', 'Upper_Band', 'Middle_Band', 'Lower_Band']))
+        if latest_data is None:
+            st.warning("⚠️ Error fetching stock data. Try another ticker.")
+        else:
+            try:
+                prediction = model.predict(latest_data)[0]
+                st.success(f"**Recommendation:** {'✅ Buy' if prediction == 1 else '❌ Sell'}")
+
+                # Display fetched technical indicators
+                df = pd.DataFrame(latest_data, columns=['Close', 'SMA_10', 'SMA_50', 'EMA_50', 'RSI', 'MACD', 'MACD_signal', 'Upper_Band', 'Middle_Band', 'Lower_Band'])
+                st.write("### Technical Indicators")
+                st.dataframe(df)
+            except Exception as e:
+                st.error(f"Prediction Error: {e}")
