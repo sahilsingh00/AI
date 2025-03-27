@@ -1,13 +1,8 @@
 yfinance
 ta
-streamlit
 numpy
 pandas
-scikit-learn  # If using ML models
-torch  # If using PyTorch models
-tensorflow  # If using TensorFlow models
-xgboost  # If using XGBoost models
-joblib  # If using joblib for model loading
-matplotlib
-seaborn
-pickle5  # If using pickle
+scikit-learn
+xgboost
+joblib
+
