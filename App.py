@@ -7,7 +7,7 @@ import ta  # Technical indicators library
 import os
 
 # Check if model file exists before loading
-MODEL_PATH = "stock_model.pkl"
+MODEL_PATH = "stock_prediction_model.pkl"
 
 if not os.path.exists(MODEL_PATH):
     st.error("Model file not found! Please upload 'stock_model.pkl' before running the app.")
