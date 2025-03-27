@@ -1,21 +1,20 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import pickle
+import joblib
 import yfinance as yf
 import ta  # Technical indicators library
 import os
-import joblib
-model = joblib.load(f)
 
-# Check if model file exists before loading
+# Define model path
 MODEL_PATH = "stock_prediction_model.pkl"
 
-if not os.path.exists(MODEL_PATH):
-    st.error("Model file not found! Please upload 'stock_model.pkl' before running the app.")
+# Check if model file exists before loading
+if os.path.exists(MODEL_PATH):
+    model = joblib.load(MODEL_PATH)
 else:
-    with open(MODEL_PATH, "rb") as f:
-        model = pickle.load(f)
+    st.error("⚠️ Model file not found! Please upload 'stock_prediction_model.pkl' before running the app.")
+    model = None  # Prevent errors if model is missing
 
 # Function to fetch real-time stock data
 def fetch_real_time_stock_data(ticker):
@@ -30,11 +29,11 @@ def fetch_real_time_stock_data(ticker):
     history['SMA_50'] = ta.trend.sma_indicator(history['Close'], window=50)
     history['EMA_50'] = ta.trend.ema_indicator(history['Close'], window=50)
     history['RSI'] = ta.momentum.rsi(history['Close'], window=14)
-    
+
     macd = ta.trend.MACD(history['Close'])
     history['MACD'] = macd.macd()
     history['MACD_signal'] = macd.macd_signal()
-    
+
     bb = ta.volatility.BollingerBands(history['Close'], window=20)
     history['Upper_Band'] = bb.bollinger_hband()
     history['Middle_Band'] = bb.bollinger_mavg()
@@ -55,8 +54,8 @@ st.title("📈 Real-Time Stock Prediction")
 ticker = st.text_input("Enter Stock Ticker (e.g., TATAPOWER.NS):", "TATAPOWER.NS")
 
 if st.button("Predict"):
-    if not os.path.exists(MODEL_PATH):
-        st.error("Model not found! Upload 'stock_model.pkl'.")
+    if model is None:
+        st.error("⚠️ Model not loaded. Upload 'stock_prediction_model.pkl'.")
     else:
         latest_data = fetch_real_time_stock_data(ticker)
 
