@@ -1,7 +1,7 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import pandas_ta as ta
+import pandas_ta as pta
 import numpy as np
 import joblib
 import ta
@@ -17,17 +17,17 @@ def compute_indicators(history):
     if history.empty or 'Close' not in history.columns:
         return pd.DataFrame()  # Return empty DataFrame if data is missing
 
-    history['SMA_10'] = ta.sma(history['Close'], length=10)
-    history['SMA_50'] = ta.sma(history['Close'], length=50)
-    history['EMA_50'] = ta.ema(history['Close'], length=50)
-    history['RSI'] = ta.rsi(history['Close'], length=14)
+    history['SMA_10'] = pta.sma(history['Close'], length=10)
+    history['SMA_50'] = pta.sma(history['Close'], length=50)
+    history['EMA_50'] = pta.ema(history['Close'], length=50)
+    history['RSI'] = pta.rsi(history['Close'], length=14)
 
-    macd = ta.macd(history['Close'])
+    macd = pta.macd(history['Close'])
     if macd is not None:
         history['MACD'] = macd.iloc[:, 0]
         history['MACD_signal'] = macd.iloc[:, 1]
 
-    bb = ta.bbands(history['Close'], length=20)
+    bb = pta.bbands(history['Close'], length=20)
     if bb is not None:
         history['Upper_Band'] = bb.iloc[:, 0]
         history['Middle_Band'] = bb.iloc[:, 1]
