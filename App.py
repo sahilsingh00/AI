@@ -7,7 +7,7 @@ import joblib
 import ta
 # Load trained model
 try:
-    model = joblib.load("model1.pkl")
+    model = joblib.load("stock_prediction_model (1).pkl")
 except FileNotFoundError:
     st.error("Error: Model file 'model1.pkl' not found. Please upload the trained model.")
     st.stop()
