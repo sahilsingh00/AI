@@ -7,13 +7,13 @@ import ta  # Technical indicators library
 import os
 
 # Define model path
-MODEL_PATH = "stock_prediction_model.pkl"
+MODEL_PATH = "stock_model.pkl"
 
 # Check if model file exists before loading
 if os.path.exists(MODEL_PATH):
     model = joblib.load(MODEL_PATH)
 else:
-    st.error("⚠️ Model file not found! Please upload 'stock_prediction_model.pkl' before running the app.")
+    st.error("⚠️ Model file not found! Please upload 'stock_model.pkl' before running the app.")
     model = None  # Prevent errors if model is missing
 
 # Function to fetch real-time stock data
