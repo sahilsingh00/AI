@@ -204,9 +204,9 @@ import joblib
 
 # Load trained model
 try:
-    model = joblib.load("model1.pkl")  # Use the correct filename
+    model = joblib.load("stock_prediction_model.pkl")  # Use the correct filename
 except FileNotFoundError:
-    st.error("Error: Model file 'model1.pkl' not found. Please upload the trained model.")
+    st.error("Error: Model file not found. Please upload the trained model.")
     st.stop()
 
 # Function to compute technical indicators
