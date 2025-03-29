@@ -4,7 +4,7 @@ import pandas as pd
 import pandas_ta as ta
 import numpy as np
 import joblib
-# import ta
+import ta
 # Load trained model
 try:
     model = joblib.load("stock_prediction_model (1).pkl")
