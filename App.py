@@ -139,7 +139,7 @@ def get_recommendation(stock_ticker):
         return f"Error fetching data: {str(e)}"
 
 # Streamlit UI
-st.title("📊 Stock Prediction App")
+st.title("📊 WealthGenius")
 st.write("🔍 **Select a stock and market to get a Buy/Sell prediction**")
 
 # Step 1: Select stock from CSV
