@@ -8,3 +8,4 @@ joblib
 cython
 pandas_ta
 setuptools
+keras
