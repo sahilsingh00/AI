@@ -1,4 +1,3 @@
-
 import streamlit as st
 import yfinance as yf
 import pandas as pd
@@ -24,9 +23,6 @@ st.markdown(
             display: flex;
             gap: 20px;
         }
-        .stTable {
-            text-align: left;
-        }
         .highlight {
             font-size: 24px;
             font-weight: bold;
@@ -51,7 +47,7 @@ stocks_df = load_stock_list()
 
 # Load trained model
 try:
-    model = joblib.load("stock_prediction_model.pkl")
+    model = joblib.load("fnn_power_sector_model.pkl")
 except FileNotFoundError:
     st.error("Error: Model file not found. Please upload the trained model.")
     st.stop()
@@ -95,8 +91,16 @@ def get_recommendation(stock_ticker):
             return "Not enough data for prediction."
 
         input_features = history[features].iloc[-1:].values
-        prediction = model.predict(input_features)[0]
-        recommendation = "Buy" if prediction == 1 else "Sell"
+        prediction = model.predict(input_features)
+
+        # Handle different output formats
+        if isinstance(prediction[0], (np.ndarray, list)):
+            predicted_class = np.argmax(prediction[0])
+        else:
+            predicted_class = prediction[0]
+
+        label_map = {0: "Buy", 1: "Sell", 2: "Hold"}
+        recommendation = label_map.get(predicted_class, "Unknown")
 
         # Get fundamental data
         info = stock.info or {}
@@ -104,15 +108,13 @@ def get_recommendation(stock_ticker):
         pe_ratio = info.get("trailingPE", "N/A")
         revenue_growth = info.get("revenueGrowth", "N/A")
 
-        # Format revenue growth as percentage
         if revenue_growth != "N/A" and isinstance(revenue_growth, (int, float)):
             revenue_growth = f"{revenue_growth * 100:.2f}%"
 
-        # Format market capitalization
         def format_market_cap(value):
             if value == "N/A" or value is None:
                 return "N/A"
-            if value >= 100_00_00_000:  # 100 Crore (1 Cr = 10,000,000)
+            if value >= 100_00_00_000:
                 return f"{value / 100_00_00_000:.2f} Cr"
             else:
                 return f"{value / 10_00_000:.2f} Lakh"
@@ -120,11 +122,14 @@ def get_recommendation(stock_ticker):
         market_cap = format_market_cap(info.get("marketCap", "N/A"))
 
         # Define conclusion
-        conclusion = (
-            "📈 **The stock is showing strong momentum**, with positive technical signals and favorable fundamentals."
-            if recommendation == "Buy"
-            else "⚠️ **The stock appears weak**, with potential downside risks. It may not be the right time to invest."
-        )
+        if recommendation == "Buy":
+            conclusion = "📈 **The stock is showing strong momentum**, with positive technical signals and favorable fundamentals."
+        elif recommendation == "Sell":
+            conclusion = "⚠️ **The stock appears weak**, with potential downside risks. It may not be the right time to invest."
+        elif recommendation == "Hold":
+            conclusion = "🤔 **The stock is neutral right now**. It might be best to wait for a clearer signal before taking action."
+        else:
+            conclusion = "Prediction result is unknown."
 
         return {
             "Recommendation": recommendation,
@@ -140,7 +145,7 @@ def get_recommendation(stock_ticker):
 
 # Streamlit UI
 st.title("📊 WealthGenius")
-st.write("🔍 **Select a stock and market to get a Buy/Sell prediction**")
+st.write("🔍 **Select a stock and market to get a Buy/Sell/Hold prediction**")
 
 # Step 1: Select stock from CSV
 stock_name = st.selectbox("📌 Select a Stock:", stocks_df["NAME OF COMPANY"].unique())
@@ -168,8 +173,10 @@ if st.button("📈 Predict Now"):
             st.subheader(f"📊 **Recommendation: {result['Recommendation']}**")
             if result["Recommendation"] == "Buy":
                 st.markdown('<p class="highlight">📈 Strong Momentum!</p>', unsafe_allow_html=True)
-            else:
+            elif result["Recommendation"] == "Sell":
                 st.markdown('<p class="warning">⚠️ Potential Downside Risk</p>', unsafe_allow_html=True)
+            elif result["Recommendation"] == "Hold":
+                st.markdown('<p style="font-size: 18px; font-weight: bold; color: #FFA500;">🤔 Wait and Watch</p>', unsafe_allow_html=True)
 
         with col2:
             st.subheader("💰 **Stock Overview**")
