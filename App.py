@@ -47,7 +47,7 @@ stocks_df = load_stock_list()
 
 # Load trained model
 try:
-    model = joblib.load("fnn_power_sector_model.pkl")
+    model = joblib.load("stock_prediction_model (3).pkl")
 except FileNotFoundError:
     st.error("Error: Model file not found. Please upload the trained model.")
     st.stop()
