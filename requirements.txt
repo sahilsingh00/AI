@@ -14,5 +14,5 @@ newsapi-python
 nltk
 seaborn
 pandas_ta
-distribution
+get_distribution
 ta
