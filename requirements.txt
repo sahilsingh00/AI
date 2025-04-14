@@ -1,0 +1,15 @@
+streamlit
+langchain
+langchain-google-genai
+pandas
+numpy
+matplotlib
+plotly
+yfinance
+scikit-learn
+joblib
+python-dotenv
+requests
+newsapi-python
+nltk
+seaborn
