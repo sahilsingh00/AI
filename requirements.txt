@@ -13,3 +13,4 @@ requests
 newsapi-python
 nltk
 seaborn
+pandas_ta
